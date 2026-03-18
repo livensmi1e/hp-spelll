@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"slices"
 )
@@ -49,7 +50,7 @@ func cast(spell string) {
 	for s := range HARRY_POTTER_SPELLS {
 		d := levenshtein(spell, s)
 		if d == 0 {
-			println(HARRY_POTTER_SPELLS[s])
+			fmt.Println(HARRY_POTTER_SPELLS[s])
 			return
 		}
 		if d <= N {
@@ -93,14 +94,14 @@ func levenshtein(a, b string) int {
 }
 
 func suggest(spells ...string) {
-	print("The most similar spell")
+	fmt.Print("The most similar spell")
 	if len(spells) > 1 {
-		println("s are: ")
+		fmt.Println("s are: ")
 	} else {
-		println(" is: ")
+		fmt.Println(" is: ")
 	}
 	for _, spell := range spells {
-		println("\t", spell)
+		fmt.Println("\t", spell)
 	}
 }
 
