@@ -1,6 +1,9 @@
 package main
 
-import "os"
+import (
+	"os"
+	"slices"
+)
 
 // To be updated
 var HARRY_POTTER_SPELLS = map[string]string{
@@ -12,7 +15,7 @@ var HARRY_POTTER_SPELLS = map[string]string{
 	"serpensortia":       "",
 	"expecto patronum":   "",
 	"lumos maxima":       "",
-	"accio":              "",
+	"accio":              "summon object toward caster",
 	"oculus reparo":      "",
 	"prior incantato":    "",
 	"stupefy":            "",
@@ -42,9 +45,8 @@ func main() {
 
 func cast(spell string) {
 	N := threshold(spell)
-	S := make([]string, 0, N)
-	T := 5
-	for _, s := range HARRY_POTTER_SPELLS {
+	S := []string{}
+	for s := range HARRY_POTTER_SPELLS {
 		d := levenshtein(spell, s)
 		if d == 0 {
 			println(HARRY_POTTER_SPELLS[s])
@@ -54,11 +56,40 @@ func cast(spell string) {
 			S = append(S, s)
 		}
 	}
+	T := min(2, len(S))
+	slices.Sort(S)
 	suggest(S[:T]...)
 }
 
 func levenshtein(a, b string) int {
-	return 0
+	Na := len(a)
+	Nb := len(b)
+	if Na == 0 {
+		return Nb
+	}
+	if Nb == 0 {
+		return Na
+	}
+	d := make([][]int, Na+1)
+	for i := 0; i <= Na; i++ {
+		d[i] = make([]int, Nb+1)
+	}
+	for i := 1; i <= Na; i++ {
+		d[i][0] = i + 1
+	}
+	for j := 1; j <= Nb; j++ {
+		d[0][j] = j + 1
+	}
+	for i := 1; i <= Na; i++ {
+		for j := 1; j <= Nb; j++ {
+			s := 0
+			if a[i-1] != b[j-1] {
+				s = 1
+			}
+			d[i][j] = min(d[i-1][j-1]+s, min(d[i-1][j]+1, d[i][j-1]+1))
+		}
+	}
+	return d[Na][Nb]
 }
 
 func suggest(spells ...string) {
@@ -69,7 +100,7 @@ func suggest(spells ...string) {
 		println(" is: ")
 	}
 	for _, spell := range spells {
-		println("\t" + spell)
+		println("\t", spell)
 	}
 }
 
