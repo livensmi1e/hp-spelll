@@ -22,6 +22,11 @@ func captureOutput(f func()) string {
 	return buf.String()
 }
 
+// --- helper contains ---
+func contains(s, substr string) bool {
+	return bytes.Contains([]byte(s), []byte(substr))
+}
+
 // --- TEST LEVENSHTEIN ---
 func TestLevenshtein(t *testing.T) {
 	tests := []struct {
@@ -67,33 +72,56 @@ func TestThreshold(t *testing.T) {
 	}
 }
 
-// --- TEST EXACT MATCH ---
-func TestCast_ExactMatch(t *testing.T) {
-	out := captureOutput(func() {
-		cast("accio")
-	})
+// --- TEST DOCAST: EXACT MATCH ---
+func TestDoCast_ExactMatch(t *testing.T) {
+	res := doCast("accio")
 
-	if out == "" {
-		t.Errorf("expected description for exact match, got empty output")
+	want := "summon object toward caster"
+	if res != want {
+		t.Errorf("expected %q, got %q", want, res)
 	}
 }
 
-// --- TEST SUGGESTION ---
-func TestCast_Suggestion(t *testing.T) {
-	out := captureOutput(func() {
-		cast("lumosx")
-	})
+// --- TEST DOCAST: SUGGESTION ---
+func TestDoCast_Suggestion(t *testing.T) {
+	res := doCast("lumosx")
 
-	if out == "" {
-		t.Fatalf("expected suggestions, got empty output")
+	if res == "" {
+		t.Fatalf("expected suggestions, got empty string")
 	}
 
-	if !contains(out, "lumos") {
-		t.Errorf("expected 'lumos' in suggestions, got: %s", out)
+	if !contains(res, "lumos") {
+		t.Errorf("expected 'lumos' in suggestions, got: %s", res)
 	}
 }
 
-// --- helper contains ---
-func contains(s, substr string) bool {
-	return bytes.Contains([]byte(s), []byte(substr))
+// --- TEST DOCAST: MULTIPLE SUGGESTIONS FORMAT ---
+func TestDoCast_MultipleSuggestions(t *testing.T) {
+	res := doCast("lum")
+
+	if !contains(res, "The most similar spell") {
+		t.Errorf("unexpected format: %s", res)
+	}
+}
+
+// --- TEST DOCAST: NO MATCH ---
+func TestDoCast_NoMatch(t *testing.T) {
+	res := doCast("zzzzzz")
+
+	want := "Avada Kedavra"
+	if res != want {
+		t.Errorf("expected %q, got %q", want, res)
+	}
+}
+
+// --- TEST CAST (I/O layer) ---
+func TestCast_Print(t *testing.T) {
+	out := captureOutput(func() {
+		cast("hello")
+	})
+
+	want := "hello\n"
+	if out != want {
+		t.Errorf("expected %q, got %q", want, out)
+	}
 }

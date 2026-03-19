@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 )
 
 // To be updated
@@ -34,6 +35,12 @@ var HARRY_POTTER_SPELLS = map[string]string{
 	"water to rum spell": "",
 }
 
+var (
+	prev   []int
+	curr   []int
+	maxLen = maxSpellLen()
+)
+
 func main() {
 	args := os.Args
 	if len(args) < 2 {
@@ -41,73 +48,87 @@ func main() {
 		return
 	}
 	spell := args[1]
-	cast(spell)
+	result := doCast(spell)
+	cast(result)
 }
 
-// O(n*max(len(s)^2))
-// len(s) <= 50
-// n <= 1000
-func cast(spell string) {
-	N := threshold(spell)
-	S := []string{}
+// Sort is overkill
+func doCast(spell string) string {
+	threshold := threshold(spell)
+	candidates := []string{}
+	prev = make([]int, maxLen+1)
+	curr = make([]int, maxLen+1)
 	for s := range HARRY_POTTER_SPELLS {
 		d := levenshtein(spell, s)
 		if d == 0 {
-			fmt.Println(HARRY_POTTER_SPELLS[s])
-			return
+			return HARRY_POTTER_SPELLS[s]
 		}
-		if d <= N {
-			S = append(S, s)
+		if d <= threshold {
+			candidates = append(candidates, s)
 		}
 	}
-	T := min(2, len(S))
-	slices.Sort(S)
-	suggest(S[:T]...)
+	if len(candidates) == 0 {
+		return "Avada Kedavra"
+	}
+	top := min(2, len(candidates))
+	slices.Sort(candidates)
+	return suggest(candidates[:top]...)
 }
 
 func levenshtein(a, b string) int {
 	Na := len(a)
 	Nb := len(b)
-	if Na == 0 {
-		return Nb
+	if cap(prev) < Nb+1 {
+		prev = make([]int, Nb+1)
+		curr = make([]int, Nb+1)
 	}
-	if Nb == 0 {
-		return Na
-	}
-	d := make([][]int, Na+1)
-	for i := 0; i <= Na; i++ {
-		d[i] = make([]int, Nb+1)
-	}
-	for i := 1; i <= Na; i++ {
-		d[i][0] = i
-	}
-	for j := 1; j <= Nb; j++ {
-		d[0][j] = j
+	prev = prev[:Nb+1]
+	curr = curr[:Nb+1]
+	for j := 0; j <= Nb; j++ {
+		prev[j] = j
 	}
 	for i := 1; i <= Na; i++ {
+		curr[0] = i
 		for j := 1; j <= Nb; j++ {
 			s := 0
 			if a[i-1] != b[j-1] {
 				s = 1
 			}
-			d[i][j] = min(d[i-1][j-1]+s, min(d[i-1][j]+1, d[i][j-1]+1))
+			curr[j] = min(prev[j-1]+s, min(prev[j]+1, curr[j-1]+1))
 		}
+		prev, curr = curr, prev
 	}
-	return d[Na][Nb]
+	return prev[Nb]
 }
 
-func suggest(spells ...string) {
-	fmt.Print("The most similar spell")
+func suggest(spells ...string) string {
+	var b strings.Builder
+	b.WriteString("The most similar spell")
 	if len(spells) > 1 {
-		fmt.Println("s are: ")
+		b.WriteString("s are: \n")
 	} else {
-		fmt.Println(" is: ")
+		b.WriteString(" is: \n")
 	}
 	for _, spell := range spells {
-		fmt.Println("\t", spell)
+		b.WriteString("\t")
+		b.WriteString(spell)
+		b.WriteString("\n")
 	}
+	return b.String()
 }
 
 func threshold(spell string) int {
 	return max(2, len(spell)/3)
+}
+
+func maxSpellLen() int {
+	m := 0
+	for s := range HARRY_POTTER_SPELLS {
+		m = max(m, len(s))
+	}
+	return m
+}
+
+func cast(result string) {
+	fmt.Println(result)
 }

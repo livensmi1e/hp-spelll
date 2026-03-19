@@ -6,19 +6,19 @@ import (
 
 func BenchmarkCast_ExactMatch(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		cast("accio")
+		doCast("accio")
 	}
 }
 
 func BenchmarkCast_Similar(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		cast("acccio")
+		doCast("acccio")
 	}
 }
 
 func BenchmarkCast_NoMatch(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		cast("abcdefgxyz")
+		doCast("abcdefgxyz")
 	}
 }
 
