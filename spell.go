@@ -44,6 +44,9 @@ func main() {
 	cast(spell)
 }
 
+// O(n*max(len(s)^2))
+// len(s) <= 50
+// n <= 1000
 func cast(spell string) {
 	N := threshold(spell)
 	S := []string{}
@@ -76,10 +79,10 @@ func levenshtein(a, b string) int {
 		d[i] = make([]int, Nb+1)
 	}
 	for i := 1; i <= Na; i++ {
-		d[i][0] = i + 1
+		d[i][0] = i
 	}
 	for j := 1; j <= Nb; j++ {
-		d[0][j] = j + 1
+		d[0][j] = j
 	}
 	for i := 1; i <= Na; i++ {
 		for j := 1; j <= Nb; j++ {
